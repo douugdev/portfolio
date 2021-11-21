@@ -35,18 +35,15 @@ const Planet: React.FC<Props> = ({ radius, velocity }) => {
   });
 
   return (
-    <sphere name="sphere2" diameter={2} segments={32} position={new Vector3(0, 0, radius)} ref={sphereRef}>
-      <standardMaterial
-        name="material2"
-        specularPower={8}
-        reflectionFresnelParameters={FresnelParameters.Parse({
-          isEnabled: true,
-          leftColor: [1, 1, 1],
-          rightColor: [0, 0, 0],
-          bias: 0.1,
-          power: 5,
-        })}
-      >
+    <sphere
+      name={'sphere2'}
+      diameter={2}
+      segments={16}
+      position={new Vector3(0, 0, radius)}
+      ref={sphereRef}
+      receiveShadows={true}
+    >
+      <standardMaterial name="material2" specularPower={2}>
         <texture url={'textures/planet.jpg'} />
       </standardMaterial>
     </sphere>

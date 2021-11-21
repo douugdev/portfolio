@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import '@babylonjs/core/Physics/physicsEngineComponent'; // side-effect adds scene.enablePhysics function
 import '@babylonjs/inspector';
@@ -13,12 +13,13 @@ import * as CANNON from 'cannon';
 import Planet from '../Planet';
 import styles from './styles.module.scss';
 import UserInterface from '../UserInterface';
+import { Nullable, ShadowGenerator } from '@babylonjs/core';
 
 window.CANNON = CANNON;
 
-const gravityVector = new Vector3(0, -9.81, 0);
-
 const StellarSystem: React.FC = () => {
+  const shadowRef = useRef<Nullable<ShadowGenerator>>(null);
+
   return (
     <div className={styles.app}>
       <UserInterface />
@@ -28,19 +29,21 @@ const StellarSystem: React.FC = () => {
         adaptToDeviceRatio={true}
         canvasId="sample-canvas"
       >
-        <Scene enablePhysics={[gravityVector, new CannonJSPlugin()]}>
+        <Scene enablePhysics={[new CannonJSPlugin()]}>
           <arcRotateCamera
             name="arc"
             fov={1}
             target={Vector3.Zero()}
+            // target={new Vector3(10, 0, 0)}
             alpha={(3 * Math.PI) / 8}
             beta={(3 * Math.PI) / 8}
             minZ={0.001}
             lowerRadiusLimit={8}
             wheelPrecision={15}
             radius={250}
+            // radius={8}
           />
-
+          <glowLayer name="glow" options={{ mainTextureSamples: 2 }} isEnabled={true} intensity={2} />
           <Skybox name="sky-box" rootUrl={'textures/space'} size={1000} />
           <hemisphericLight
             name="global-light"
@@ -50,47 +53,38 @@ const StellarSystem: React.FC = () => {
             specular={new Color3(0.3, 0.2, 0.5)}
           />
           <pointLight
-            name="shadow-light"
+            name="sunlight"
             position={Vector3.Zero()}
-            radius={50}
-            intensity={1.2}
-            range={2000}
-            diffuse={new Color3(1, 0.5, 0)}
-            specular={new Color3(1, 0.5, 0)}
+            radius={10}
+            falloffType={2}
+            intensity={2}
+            range={120}
+            diffuse={new Color3(1, 0.6, 0)}
+            specular={new Color3(1, 0.6, 0)}
           >
             <shadowGenerator
+              ref={shadowRef}
               mapSize={1024}
               useBlurExponentialShadowMap={true}
               blurKernel={32}
               darkness={1.2}
-              shadowCasters={['sphere1', 'dialog']}
+              shadowCasters={['sphere2']}
               forceBackFacesOnly={true}
               depthScale={100}
             />
           </pointLight>
           <sphere name="sphere1" diameter={5} segments={32} position={Vector3.Zero()}>
-            <standardMaterial
-              name="material1"
-              specularPower={8}
-              emissiveColor={new Color3(1, 1, 0)}
-              reflectionFresnelParameters={FresnelParameters.Parse({
-                isEnabled: true,
-                leftColor: [1, 1, 1],
-                rightColor: [0, 0, 0],
-                bias: 0.1,
-                power: 5,
-              })}
-            >
+            <standardMaterial name="material1" emissiveColor={new Color3(1, 0.6, 0)}>
               <texture url={'textures/sun.jpg'} />
             </standardMaterial>
           </sphere>
-          {new Array(50)
-            .fill(50)
+          {new Array(40)
+            .fill(40)
             .map((v, index) => index)
             .filter((v) => v > 5)
-            .map((value, index) => (
-              <Planet key={index} radius={value * 2} velocity={Math.abs(value - 50) / 30} />
-            ))}
+            .map((value, index) => {
+              return <Planet key={index} radius={value * 3} velocity={Math.abs(value - 50) / 30} />;
+            })}
         </Scene>
       </Engine>
     </div>
